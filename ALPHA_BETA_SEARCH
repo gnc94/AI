@@ -1,0 +1,36 @@
+def alpha_beta(node, depth, alpha, beta, maximizing_player):
+    if depth == 0 or not isinstance(node, list):
+        return node
+
+    if maximizing_player:
+        max_eval = float('-inf')
+        for child in node:
+            eval = alpha_beta(child, depth - 1, alpha, beta, False)
+            max_eval = max(max_eval, eval)
+            alpha = max(alpha, eval)
+            if beta <= alpha:
+                break
+        return max_eval
+    else:
+        min_eval = float('inf')
+        for child in node:
+            eval = alpha_beta(child, depth - 1, alpha, beta, True)
+            min_eval = min(min_eval, eval)
+            beta = min(beta, eval)
+            if beta <= alpha:
+                break
+        return min_eval
+
+game_tree = [
+    [[3, 5], [6, 9]],
+    [[2, 7], [1, 8]]
+]
+
+game_tree_doc = [
+    [[3, 5, 6], [3, 2, 9]],
+    [[0, 1, 4]]
+]
+
+best_value = alpha_beta(game_tree_doc, 3, float('-inf'), float('inf'), True)
+
+print(f"Best Value is: {best_value}")
