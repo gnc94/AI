@@ -1,0 +1,43 @@
+knowledge_base = {
+    "sachin": "batsman",
+    "batsman": "cricketer",
+    "cricketer": "sportsperson",
+    "human": "mammal",
+    "dog": "mammal",
+    "mammal": "livingbeing",
+    "cat": "mammal"
+}
+
+def derive_predicate(kb, entity, target):
+    entity = entity.lower()
+    target = target.lower()
+
+    if entity == target:
+        return True
+
+    visited = set()
+    to_visit = [entity]
+
+    while to_visit:
+        current = to_visit.pop(0)
+        if current in kb and current not in visited:
+            next_entity = kb[current]
+            if next_entity == target:
+                return True
+            visited.add(current)
+            to_visit.append(next_entity)
+    return False
+
+queries = [
+    ("sachin", "cricketer"),
+    ("sachin", "sportsperson"),
+    ("sachin", "livingbeing"),
+    ("dog", "livingbeing"),
+    ("sachin", "mammal")
+]
+
+for entity, target in queries:
+    if derive_predicate(knowledge_base, entity, target):
+        print(f"It can be derived that {entity} is a {target}.")
+    else:
+        print(f"Cannot derive that {entity} is a {target}.")
