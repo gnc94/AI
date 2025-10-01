@@ -1,0 +1,65 @@
+from __future__ import print_function
+from simpleai.search import astar, SearchProblem
+
+GOAL = '''1-2-3
+4-5-6
+7-8-e'''
+
+INITIAL = '''4-1-2
+7-e-3
+8-5-6'''
+
+def list_to_string(list_):
+    return '\n'.join(['-'.join(row) for row in list_])
+
+def string_to_list(string_):
+    return [row.split('-') for row in string_.split('\n')]
+
+def find_location(rows, element):
+    for r, row in enumerate(rows):
+        for c, val in enumerate(row):
+            if val == element:
+                return r, c
+
+goal_positions = {}
+goal_rows = string_to_list(GOAL)
+for val in '12345678e':
+    goal_positions[val] = find_location(goal_rows, val)
+
+class EightPuzzleProblem(SearchProblem):
+    def actions(self, state):
+        rows = string_to_list(state)
+        r_e, c_e = find_location(rows, 'e')
+        actions = []
+        for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
+            r, c = r_e + dr, c_e + dc
+            if 0 <= r < 3 and 0 <= c < 3:
+                actions.append(rows[r][c])
+        return actions
+
+    def result(self, state, action):
+        rows = string_to_list(state)
+        r_e, c_e = find_location(rows, 'e')
+        r_a, c_a = find_location(rows, action)
+        rows[r_e][c_e], rows[r_a][c_a] = rows[r_a][c_a], rows[r_e][c_e]
+        return list_to_string(rows)
+
+    def is_goal(self, state):
+        return state == GOAL
+
+    def cost(self, state1, action, state2):
+        return 1
+
+    def heuristic(self, state):
+        rows = string_to_list(state)
+        distance = 0
+        for val in '12345678e':
+            r, c = find_location(rows, val)
+            r_goal, c_goal = goal_positions[val]
+            distance += abs(r - r_goal) + abs(c - c_goal)
+        return distance
+
+if __name__ == "__main__":
+    result = astar(EightPuzzleProblem(INITIAL))
+    for action, state in result.path():
+        print(f'Move tile: {action}\n{state}\n')
