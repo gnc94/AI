@@ -1,0 +1,38 @@
+male = {"Ram", "Ravi", "Arjun", "Amit"}
+female = {"Sita", "Reena", "Maya", "Neha"}
+
+parent = {
+    ("Ravi", "Ram"), ("Ravi", "Sita"),
+    ("Reena", "Ram"), ("Reena", "Sita"),
+    ("Arjun", "Ravi"), ("Arjun", "Maya"),
+    ("Neha", "Amit"), ("Neha", "Reena"),
+}
+
+def find_parents(child):
+    return {p for (c, p) in parent if c == child}
+
+def father(f, c):
+    return f in male and c in find_parents(f)
+
+def mother(m, c):
+    return m in female and c in find_parents(m)
+
+def siblings(x, y):
+    return x != y and len(find_parents(x).intersection(find_parents(y))) > 0
+
+def brother(b, s):
+    return b in male and siblings(b, s)
+
+def sister(sis, s):
+    return sis in female and siblings(sis, s)
+
+def uncle(u, n):
+    parents_of_n = find_parents(n)
+    return u in male and any(siblings(u, p) for p in parents_of_n)
+
+print(f"Father of Ravi: {[p for p in male if (p, 'Ravi') in parent]}")
+print(f"Mother of Arjun: {[p for p in female if (p, 'Arjun') in parent]}")
+print(f"Siblings (Ravi, Reena): {siblings('Ravi', 'Reena')}")
+print(f"Brother of Reena: {[p for p in male if brother(p, 'Reena')]}")
+print(f"Sister of Ravi: {[p for p in female if sister(p, 'Ravi')]}")
+print(f"Uncle of Arjun: {[p for p in male if uncle(p, 'Arjun')]}")
