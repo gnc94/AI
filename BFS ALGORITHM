@@ -1,0 +1,27 @@
+graph = {
+    'A': {'B', 'C'},
+    'B': {'A', 'D', 'E'},
+    'C': {'A', 'F'},
+    'D': set(),
+    'E': {'B', 'F'},
+    'F': {'C', 'E'}
+}
+
+visited_nodes = []
+queue = []
+
+def bfs(visited, graph, node):
+    visited.append(node)
+    queue.append(node)
+
+    while queue:
+        s = queue.pop(0)
+        print(s, end=" ")
+
+        for neighbour in graph[s]:
+            if neighbour not in visited:
+                visited.append(neighbour)
+                queue.append(neighbour)
+
+print("BFS Traversal:")
+bfs(visited_nodes, graph, 'A')
