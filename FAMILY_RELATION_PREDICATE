@@ -5,34 +5,47 @@ parent = {
     ("Ravi", "Ram"), ("Ravi", "Sita"),
     ("Reena", "Ram"), ("Reena", "Sita"),
     ("Arjun", "Ravi"), ("Arjun", "Maya"),
-    ("Neha", "Amit"), ("Neha", "Reena"),
+    ("Neha", "Reena"), ("Neha", "Amit")
 }
 
-def find_parents(child):
-    return {p for (c, p) in parent if c == child}
+def father(x, y):
+    return (x in male) and (y, x) in parent
 
-def father(f, c):
-    return f in male and c in find_parents(f)
+def mother(x, y):
+    return (x in female) and (y, x) in parent
 
-def mother(m, c):
-    return m in female and c in find_parents(m)
+def grandfather(x, y):
+    return (x in male) and any((p, x) in parent for (y, p) in parent)
+
+def grandmother(x, y):
+    return (x in female) and any((p, x) in parent for (y, p) in parent)
 
 def siblings(x, y):
-    return x != y and len(find_parents(x).intersection(find_parents(y))) > 0
+    return x != y and any((x, p) in parent and (y, p) in parent for _, p in parent)
 
-def brother(b, s):
-    return b in male and siblings(b, s)
+def brother(x, y):
+    return (x in male) and siblings(x, y)
 
-def sister(sis, s):
-    return sis in female and siblings(sis, s)
+def sister(x, y):
+    return (x in female) and siblings(x, y)
 
-def uncle(u, n):
-    parents_of_n = find_parents(n)
-    return u in male and any(siblings(u, p) for p in parents_of_n)
+def uncle(x, y):
+    return (x in male) and any(brother(x, p) for p in male | female if (y, p) in parent)
 
-print(f"Father of Ravi: {[p for p in male if (p, 'Ravi') in parent]}")
-print(f"Mother of Arjun: {[p for p in female if (p, 'Arjun') in parent]}")
-print(f"Siblings (Ravi, Reena): {siblings('Ravi', 'Reena')}")
-print(f"Brother of Reena: {[p for p in male if brother(p, 'Reena')]}")
-print(f"Sister of Ravi: {[p for p in female if sister(p, 'Ravi')]}")
-print(f"Uncle of Arjun: {[p for p in male if uncle(p, 'Arjun')]}")
+def aunt(x, y):
+    return (x in female) and any(sister(x, p) for p in male | female if (y, p) in parent)
+
+def nephew(x, y):
+    return (x in male) and any((x, p) in parent and (p, y) in parent for p, q in parent)
+
+def niece(x, y):
+    return (x in female) and any((x, p) in parent and (p, y) in parent for p, q in parent)
+
+def cousin(x, y):
+    return any(siblings(p1, p2) for (x, p1) in parent for (y, p2) in parent if p1 != p2)
+
+print("Father of Ravi:", [p for p in male if father(p, "Ravi")])
+print("Mother of Arjun:", [p for p in female if mother(p, "Arjun")])
+print("Siblings (Ravi, Reena):", siblings("Ravi", "Reena"))
+print("Brother of Reena:", [p for p in male if brother(p, "Reena")])
+print("Sister of Ravi:", [p for p in female if sister(p, "Ravi")])
