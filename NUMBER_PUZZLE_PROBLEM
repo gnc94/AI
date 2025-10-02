@@ -1,65 +1,78 @@
-from __future__ import print_function
+import tkinter as tk
+from tkinter import messagebox
 from simpleai.search import astar, SearchProblem
 
-GOAL = '''1-2-3
-4-5-6
-7-8-e'''
+GOAL = '12345678e'
 
-INITIAL = '''4-1-2
-7-e-3
-8-5-6'''
+class EightPuzzleSolver(SearchProblem):
+    def __init__(self, initial):
+        self.goal = GOAL
+        super().__init__(initial)
 
-def list_to_string(list_):
-    return '\n'.join(['-'.join(row) for row in list_])
-
-def string_to_list(string_):
-    return [row.split('-') for row in string_.split('\n')]
-
-def find_location(rows, element):
-    for r, row in enumerate(rows):
-        for c, val in enumerate(row):
-            if val == element:
-                return r, c
-
-goal_positions = {}
-goal_rows = string_to_list(GOAL)
-for val in '12345678e':
-    goal_positions[val] = find_location(goal_rows, val)
-
-class EightPuzzleProblem(SearchProblem):
     def actions(self, state):
-        rows = string_to_list(state)
-        r_e, c_e = find_location(rows, 'e')
-        actions = []
-        for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
-            r, c = r_e + dr, c_e + dc
-            if 0 <= r < 3 and 0 <= c < 3:
-                actions.append(rows[r][c])
-        return actions
+        index = state.index('e')
+        moves = []
+        if index % 3 > 0: moves.append('L')
+        if index % 3 < 2: moves.append('R')
+        if index // 3 > 0: moves.append('U')
+        if index // 3 < 2: moves.append('D')
+        return moves
 
     def result(self, state, action):
-        rows = string_to_list(state)
-        r_e, c_e = find_location(rows, 'e')
-        r_a, c_a = find_location(rows, action)
-        rows[r_e][c_e], rows[r_a][c_a] = rows[r_a][c_a], rows[r_e][c_e]
-        return list_to_string(rows)
+        index = state.index('e')
+        swap = {'L': -1, 'R': 1, 'U': -3, 'D': 3}[action]
+        new_index = index + swap
+        state = list(state)
+        state[index], state[new_index] = state[new_index], state[index]
+        return ''.join(state)
 
     def is_goal(self, state):
-        return state == GOAL
-
-    def cost(self, state1, action, state2):
-        return 1
+        return state == self.goal
 
     def heuristic(self, state):
-        rows = string_to_list(state)
         distance = 0
-        for val in '12345678e':
-            r, c = find_location(rows, val)
-            r_goal, c_goal = goal_positions[val]
-            distance += abs(r - r_goal) + abs(c - c_goal)
+        for i, val in enumerate(state):
+            if val == 'e':
+                continue
+            goal_index = GOAL.index(val)
+            distance += abs(i // 3 - goal_index // 3) + abs(i % 3 - goal_index % 3)
         return distance
 
+class PuzzleGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("8 Puzzle Solver (AI)")
+        self.board = list("7245e8361")
+        self.buttons = []
+        self.create_board()
+        tk.Button(root, text="Solve", command=self.solve).grid(row=3, column=0, columnspan=3)
+
+    def create_board(self):
+        for i in range(9):
+            btn = tk.Button(self.root, text=self.board[i] if self.board[i] != 'e' else ' ',
+                            font=("Arial", 20), width=4, height=2)
+            btn.grid(row=i // 3, column=i % 3)
+            self.buttons.append(btn)
+
+    def update_board(self):
+        for i in range(9):
+            self.buttons[i].config(text=self.board[i] if self.board[i] != 'e' else ' ')
+
+    def solve(self):
+        problem = EightPuzzleSolver(''.join(self.board))
+        result = astar(problem)
+        path = [state for action, state in result.path()]
+        self.animate_solution(path)
+
+    def animate_solution(self, path, index=0):
+        if index >= len(path):
+            messagebox.showinfo("Done", "Puzzle Solved!")
+            return
+        self.board = list(path[index])
+        self.update_board()
+        self.root.after(500, lambda: self.animate_solution(path, index + 1))
+
 if __name__ == "__main__":
-    result = astar(EightPuzzleProblem(INITIAL))
-    for action, state in result.path():
-        print(f'Move tile: {action}\n{state}\n')
+    root = tk.Tk()
+    gui = PuzzleGUI(root)
+    root.mainloop()
